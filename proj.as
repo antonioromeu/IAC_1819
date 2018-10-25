@@ -1,3 +1,5 @@
+; António Romeu 92427, Francisco Lisboa 92464, grupo 20            
+            
             MOV R7, fdffh
             MOV SP, R7
 vinic       EQU 50
@@ -12,6 +14,8 @@ ang         EQU 60
             POP R1
             BR -1      
 
+; POSY:	obtem o valor da coordenada y, evocando o sen e o compact
+;				Entradas:	pilha - angulo, tempo, velocidade inicial
 POSY:       PUSH R1
             PUSH R2
             PUSH R3
@@ -55,6 +59,8 @@ POSY:       PUSH R1
             POP R1
             RETN 3
 
+; POSX:	obtem o valor da coordenada x, evocando o cos e o compact
+;				Entradas:	pilha - angulo, tempo, velocidade inicial
 POSX:       PUSH R1
             PUSH R2
             PUSH R3
@@ -84,6 +90,8 @@ POSX:       PUSH R1
             POP R1
             RETN 3
 
+; SEN:	obtem o sen do angulo dado, atraves do cos
+;				Entradas:	pilha - angulo
 SEN:        PUSH R1
             PUSH R2
             MOV R1, M[SP + 4]
@@ -98,6 +106,8 @@ SEN:        PUSH R1
             POP R1
             RETN 1
 
+; COS:	obtem o cos do angulo dado, evocando rad, exp e fact
+;				Entradas:	pilha - angulo
 COS:        PUSH R1
             PUSH R2
             PUSH R3
@@ -136,6 +146,8 @@ COS:        PUSH R1
             POP R1
             RETN 1
 
+; RAD:	transforma o angulo em graus para radianos, atraves do chamamento de compact
+;				Entradas:	pilha - angulo
 RAD:        PUSH R1
             PUSH R2
             PUSH R3
@@ -159,6 +171,8 @@ RAD:        PUSH R1
             POP R1
             RET
 
+; FACT:	aplica o factorial a um determinado numero, chama compact
+;				Entradas:	pilha - n
 FACT:       PUSH R1
             PUSH R2
             PUSH R3
@@ -183,6 +197,8 @@ FIM_FACT:   MOV M[SP + 6], R2
             POP R1
             RETN 1
 
+; COMPACT:	faz a alteracao da posicao da virgula fixa
+;				Entradas:	pilha - n
 COMPACT:    PUSH R1
             PUSH R2
             MOV R1, M[SP + 5]
@@ -209,6 +225,8 @@ COMPACT:    PUSH R1
             POP R1
             RET
 
+; EXP:	calcula a exponencial do valor dado
+;				Entradas:	pilha - n
 EXP:        PUSH R1
             PUSH R2
             PUSH R3
