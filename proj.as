@@ -12,6 +12,12 @@ ang         EQU 60
             PUSH ang
             CALL POSX
             POP R1
+            PUSH R0
+            PUSH vinic
+            PUSH tempo
+            PUSH ang
+            CALL POSY
+            POP R2
             BR -1      
 
 ; POSY:	obtem o valor da coordenada y, evocando o sen e o compact
