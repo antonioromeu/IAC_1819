@@ -23,11 +23,11 @@ ang         EQU 25
 ;									+--------------------+
 ;									| Zona de variáveis  |
 ;									+--------------------+
-            
-			ORIG  FE0Fh ; Interrupções
-int15       WORD  TIMER ; Temporizador
 
-ORIG 		8000h
+			ORIG FE0Fh ; Interrupções
+int15       WORD TIMER ; Temporizador
+
+            ORIG 8000h
 tempo       WORD 0000h
 actualiza 	WORD 0000h
 posicao		WORD 1700h
@@ -43,28 +43,29 @@ ecra_ini3	STR '  Press any key to continue...  '
 ;									+--------------------+
 ;									| Programa Principal |
 ;									+--------------------+
- 
-ORIG		0000h
+
+
+            ORIG 0000h
             MOV R7, SP_INI
             MOV SP, R7
 			MOV R1, INT_MASK
-            MOV M[FFFAh], R1
-            MOV R1, NBR_MILISEC			
+            MOV M[FFFAh], R1        ; Habilita as interrupcoes
+            MOV R1, NBR_MILISEC
             MOV M[TIMER_COUNT], R1
 			CALL PROMPT_INI			; Aguarda input do utilizador
 			MOV R7, FFFFh
-			MOV M[IO_CONTROL], R7
+			MOV M[IO_CONTROL], R7   ; Permite ler a ultima tecla primida
             MOV R1, 1
             MOV M[TIMER_CTRL], R1	; Inicializa o temporizador
-			ENI			
-UPDATE:		MOV R2, 32			  ; Apaga a ultima instancia do projetil
+			ENI
+UPDATE:		MOV R2, 32			    ; Apaga a ultima instancia do projetil ?
 			MOV M[IO_WRITE], R2
 			MOV R7, M[posicao]
 			MOV M[IO_CONTROL], R7
-			MOV R7, ';' 
+			MOV R7, ';'
 			MOV M[IO_WRITE], R7
 			MOV R7, M[posicaox]
-			CMP R7, LIMITE_X		; Verifica se o projetil ja saiu da janela(pela direita)
+			CMP R7, LIMITE_X		; Verifica se o projetil ja saiu da janela (pela direita)
 			BR.NP CHECK
 			MOV M[tempo], R0
 CHECK:		CMP R0, M[actualiza]
@@ -72,10 +73,11 @@ CHECK:		CMP R0, M[actualiza]
 			CALL ACT_TERM
             BR UPDATE
 
+
 ;									+--------------------+
 ;									|    Temporizador    |
 ;									+--------------------+
-			
+
 TIMER:      PUSH R7
 			MOV R7, 5
 			ADD M[tempo], R7
@@ -84,10 +86,11 @@ TIMER:      PUSH R7
             MOV M[TIMER_COUNT], R7
             POP R7
 			RTI
-			
+
 ;									+--------------------+
 ;									|  Zona de funções   |
 ;									+--------------------+
+
 
 ; PROMPT_INI: escreve o ecra inicial e aguarda o input do jogador
 ;
@@ -107,6 +110,7 @@ START_GAME:	CMP M[IO_STATE], R0
 			POP R2
 			POP R1
 			RET
+
 
 ; ACT_TERM: atualiza a posiçao do projetil
 ;				Entradas: variaveis - angulo, tempo, velocidade inicial
@@ -129,7 +133,7 @@ ACT_TERM:	PUSH R1
 			SHR M[posicaox], 8
 			MOV M[posicaoy], R2
 			SHR M[posicaoy], 8
-			MOV R3, 1700h	; Inverter o y 
+			MOV R3, 1700h	        ; Inverter o y
 			SUB R3, R2
 			SHR R1, 8
 			MVBL R3, R1
@@ -141,7 +145,8 @@ ACT_TERM:	PUSH R1
 			POP R2
 			POP R1
 			RET
-			
+
+
 ; POSY:	obtem o valor da coordenada y, evocando o sen e o compact
 ;				Entradas:	pilha - angulo, tempo, velocidade inicial
 POSY:       PUSH R1
