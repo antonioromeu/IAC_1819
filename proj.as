@@ -19,24 +19,30 @@ INT_MASK    EQU 87FFh
 FINAL_STR   EQU 0080h
 meiograv    EQU 04e6h
 
+
+;									+--------------------+
+;									|Zona de interrupcoes|
+;									+--------------------+
+
+			ORIG FE00h
+int00       WORD TEC_0
+int01       WORD TEC_1
+int02       WORD TEC_2
+int03       WORD TEC_3
+int04       WORD TEC_4 
+int05       WORD TEC_5
+int06       WORD TEC_6
+int07       WORD TEC_7
+int08       WORD TEC_8
+int09       WORD TEC_9
+int_enter   WORD ENTER
+
+            ORIG FE0Fh
+int15       WORD TIMER
+
 ;									+--------------------+
 ;									|  Zona de variáveis |
 ;									+--------------------+
-
-			ORIG FE00h              ; Interrupções
-int00       WORD TEC_0              ;
-int01       WORD TEC_1 ; 
-int02       WORD TEC_2 ; 
-int03       WORD TEC_3 ; 
-int04       WORD TEC_4 ; 
-int05       WORD TEC_5 ; 
-int06       WORD TEC_6 ; 
-int07       WORD TEC_7 ; 
-int08       WORD TEC_8 ; 
-int09       WORD TEC_9 ; 
-int_enter   WORD ENTER ; 
-            ORIG FE0Fh
-int15       WORD TIMER              ; Temporizador
 
             ORIG 8000h
 tempo       WORD 0000h
@@ -55,10 +61,10 @@ vel_str 	STR 'Velocidade:                    @'
 ang_str 	STR 'Angulo:                        '
 fim_input   WORD FINAL_STR
 
+
 ;									+--------------------+
 ;									| Programa Principal |
 ;									+--------------------+
-
 
             ORIG 0000h
             ENI
@@ -98,7 +104,6 @@ INIC:       CMP R0, M[actualiza]
             BR -1
 
 
-
 ;									+--------------------+
 ;									|    Temporizador    |
 ;									+--------------------+
@@ -112,10 +117,12 @@ TIMER:      PUSH R7
             POP R7
 			RTI
 
+
 ;									+--------------------+
 ;									| Zona de interações |
 ;									+--------------------+
 
+; Relaciona as "teclas" com o respetivo numero (ex: a TEC_O corresponde o numero 0 e assim sucessivamente)
 TEC_0:      MOV M[numero], R0
             RTI
 
@@ -167,7 +174,6 @@ MOVER:      MOV M[numero], R1
 ;									|  Zona de funções   |
 ;									+--------------------+
 
-
 VOO:        PUSH R1
             PUSH R2
             PUSH R7
@@ -192,11 +198,9 @@ CHECK:		CMP R0, M[actualiza]
 			BR.Z CHECK
 			CALL ACT_TERM
             BR UPDATE
-            
+
 
 ; REC_VAL: recebe os valores introduzidos pelo jogador
-;
-
 REC_VAL:    PUSH R1
             PUSH R2
 VER_VAL:    MOV R2, 10
@@ -221,9 +225,7 @@ DEV_VAL:    MOV M[actualiza], R0
             RETN 1
 
 
-
 ; ESCREVE: escreve uma string
-;
 ESCREVE:    PUSH R1
             PUSH R2
             PUSH R3
@@ -255,8 +257,8 @@ ACA_ESC:    POP R5
             POP R1
             RETN 2
 
+
 ; APAGA: apaga uma string
-;
 APAGA:      PUSH R1
             PUSH R2
             PUSH R3
@@ -289,8 +291,9 @@ ACA_APA:    POP R5
             POP R1
             RETN 2
 
+
 ; ACT_TERM: atualiza a posiçao do projetil
-;				Entradas: variaveis - angulo, tempo, velocidade inicial
+;			    Entradas: variaveis - angulo, tempo, velocidade inicial
 ACT_TERM:	PUSH R1
 			PUSH R2
 			PUSH R3
@@ -369,7 +372,7 @@ POSY:       PUSH R1
             POP R1
             RETN 3
 
-			
+
 ; POSX:	obtem o valor da coordenada x, evocando o cos e o compact
 ;				Entradas:	pilha - angulo, tempo, velocidade inicial
 POSX:       PUSH R1
@@ -401,7 +404,7 @@ POSX:       PUSH R1
             POP R1
             RETN 3
 
-			
+
 ; SEN:	obtem o sen do angulo dado, atraves do cos
 ;				Entradas:	pilha - angulo
 SEN:        PUSH R1
@@ -418,7 +421,7 @@ SEN:        PUSH R1
             POP R1
             RETN 1
 
-			
+
 ; COS:	obtem o cos do angulo dado, evocando rad, exp e fact
 ;				Entradas:	pilha - angulo
 COS:        PUSH R1
@@ -459,7 +462,7 @@ COS:        PUSH R1
             POP R1
             RETN 1
 
-			
+
 ; RAD:	transforma o angulo em graus para radianos, atraves do chamamento de compact
 ;				Entradas:	pilha - angulo
 RAD:        PUSH R1
@@ -485,7 +488,7 @@ RAD:        PUSH R1
             POP R1
             RET
 
-			
+
 ; FACT:	aplica o factorial a um determinado numero, chama compact
 ;				Entradas:	pilha - n
 FACT:       PUSH R1
@@ -512,7 +515,7 @@ FIM_FACT:   MOV M[SP + 6], R2
             POP R1
             RETN 1
 
-			
+
 ; COMPACT:	faz a alteracao da posicao da virgula fixa
 ;				Entradas:	pilha - n
 COMPACT:    PUSH R1
@@ -527,7 +530,7 @@ COMPACT:    PUSH R1
             POP R1
             RET
 
-			
+
 ; EXP:	calcula a exponencial do valor dado
 ;				Entradas:	pilha - n
 EXP:        PUSH R1
