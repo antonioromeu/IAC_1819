@@ -15,30 +15,45 @@ TIMER_CTRL  EQU FFF7h
 LIMITE_X	EQU 80
 LIMITE_Y	EQU FFh
 NBR_MILISEC	EQU 1
-INT_MASK    EQU 8000h
-vinic       EQU 50
+INT_MASK    EQU 87FFh
+FINAL_STR   EQU 0080h
 meiograv    EQU 04e6h
-ang         EQU 25
 
 ;									+--------------------+
-;									| Zona de variáveis  |
+;									|  Zona de variáveis |
 ;									+--------------------+
 
-			ORIG FE0Fh ; Interrupções
-int15       WORD TIMER ; Temporizador
+			ORIG FE00h              ; Interrupções
+int00       WORD TEC_0              ;
+int01       WORD TEC_1 ; 
+int02       WORD TEC_2 ; 
+int03       WORD TEC_3 ; 
+int04       WORD TEC_4 ; 
+int05       WORD TEC_5 ; 
+int06       WORD TEC_6 ; 
+int07       WORD TEC_7 ; 
+int08       WORD TEC_8 ; 
+int09       WORD TEC_9 ; 
+int_enter   WORD ENTER ; 
+            ORIG FE0Fh
+int15       WORD TIMER              ; Temporizador
 
             ORIG 8000h
 tempo       WORD 0000h
+vinic       WORD 0000h
+ang         WORD 0000h
 actualiza 	WORD 0000h
 posicao		WORD 1700h
 posicaox	WORD 0000h
 posicaoy	WORD 0000h
-ecra_ini1	STR '------------GORILAS-------------'
-linech1		WORD 10
-ecra_ini2	STR 'Antonio Romeu & Francisco Lisboa'
-linech2		WORD 10
+numero      WORD 1000h
+ecra_ini	STR '------------GORILAS-------------@'
+ecra_ini2	STR 'Antonio Romeu & Francisco Lisboa@'
 ecra_ini3	STR '  Press any key to continue...  '
-
+fim_ini     WORD FINAL_STR
+vel_str 	STR 'Velocidade:                    @'
+ang_str 	STR 'Angulo:                        '
+fim_input   WORD FINAL_STR
 
 ;									+--------------------+
 ;									| Programa Principal |
@@ -46,32 +61,42 @@ ecra_ini3	STR '  Press any key to continue...  '
 
 
             ORIG 0000h
+            ENI
             MOV R7, SP_INI
             MOV SP, R7
 			MOV R1, INT_MASK
             MOV M[FFFAh], R1        ; Habilita as interrupcoes
             MOV R1, NBR_MILISEC
             MOV M[TIMER_COUNT], R1
-			CALL PROMPT_INI			; Aguarda input do utilizador
 			MOV R7, FFFFh
-			MOV M[IO_CONTROL], R7   ; Permite ler a ultima tecla primida
-            MOV R1, 1
-            MOV M[TIMER_CTRL], R1	; Inicializa o temporizador
-			ENI
-UPDATE:		MOV R2, 32			    ; Apaga a ultima instancia do projetil ?
-			MOV M[IO_WRITE], R2
-			MOV R7, M[posicao]
-			MOV M[IO_CONTROL], R7
-			MOV R7, ';'
-			MOV M[IO_WRITE], R7
-			MOV R7, M[posicaox]
-			CMP R7, LIMITE_X		; Verifica se o projetil ja saiu da janela (pela direita)
-			BR.NP CHECK
-			MOV M[tempo], R0
-CHECK:		CMP R0, M[actualiza]
-			BR.Z CHECK
-			CALL ACT_TERM
-            BR UPDATE
+			MOV M[IO_CONTROL], R7   ; Inicializa o terminal            
+            PUSH ecra_ini
+            PUSH 0918h              ; Posiçao inicial da string
+            CALL ESCREVE
+INIC:       CMP R0, M[actualiza]
+            BR.Z INIC
+            MOV M[actualiza], R0
+            PUSH ecra_ini
+            PUSH 0918h
+            CALL APAGA
+            PUSH vel_str
+            PUSH 0000h
+            CALL ESCREVE
+            PUSH R0
+            PUSH 000dh
+            CALL REC_VAL
+            POP M[vinic]
+            PUSH R0
+            PUSH 0109h
+            CALL REC_VAL
+            POP M[ang]
+            PUSH vel_str
+            PUSH 0000h
+            CALL APAGA
+            CALL VOO
+            JMP INIC
+            BR -1
+
 
 
 ;									+--------------------+
@@ -88,29 +113,181 @@ TIMER:      PUSH R7
 			RTI
 
 ;									+--------------------+
+;									| Zona de interações |
+;									+--------------------+
+
+TEC_0:      MOV M[numero], R0
+            RTI
+
+TEC_1:      PUSH R1
+            MOV R1, 1
+            JMP MOVER
+
+TEC_2:      PUSH R1
+            MOV R1, 2
+            JMP MOVER
+
+TEC_3:      PUSH R1
+            MOV R1, 3
+            JMP MOVER
+
+TEC_4:      PUSH R1
+            MOV R1, 4
+            JMP MOVER
+
+TEC_5:      PUSH R1
+            MOV R1, 5
+            JMP MOVER
+
+TEC_6:      PUSH R1
+            MOV R1, 6
+            JMP MOVER
+
+TEC_7:      PUSH R1
+            MOV R1, 7
+            JMP MOVER
+
+TEC_8:      PUSH R1
+            MOV R1, 8
+            JMP MOVER
+
+TEC_9:      PUSH R1
+            MOV R1, 9
+            JMP MOVER
+
+ENTER:      INC M[actualiza]
+            RTI
+
+MOVER:      MOV M[numero], R1
+            POP R1
+            RTI
+
+
+;									+--------------------+
 ;									|  Zona de funções   |
 ;									+--------------------+
 
 
-; PROMPT_INI: escreve o ecra inicial e aguarda o input do jogador
-;
-PROMPT_INI:	PUSH R1
-			PUSH R2
-			PUSH R3
-			MOV R1, ecra_ini1
-REPETE:		MOV R2, M[R1]
+VOO:        PUSH R1
+            PUSH R2
+            PUSH R7
+            MOV R1, 1
+            MOV M[TIMER_CTRL], R1	; Inicializa o temporizador
+UPDATE:	    MOV R2, 32			    ; Apaga a ultima instancia do projetil
 			MOV M[IO_WRITE], R2
-			INC R1
-			INC R3
-			CMP R3, 97
-			BR.NZ REPETE
-START_GAME:	CMP M[IO_STATE], R0
-			BR.Z START_GAME
-			POP R3
-			POP R2
-			POP R1
-			RET
+			MOV R7, M[posicao]
+			MOV M[IO_CONTROL], R7
+			MOV R7, '<'
+			MOV M[IO_WRITE], R7
+			MOV R7, M[posicaox]
+			CMP R7, LIMITE_X		; Verifica se o projetil ja saiu da janela (pela direita)
+			BR.NP CHECK
+            MOV M[TIMER_CTRL], R0
+            MOV M[tempo], R0
+			POP R7
+            POP R2
+            POP R1
+            RET
+CHECK:		CMP R0, M[actualiza]
+			BR.Z CHECK
+			CALL ACT_TERM
+            BR UPDATE
+            
 
+; REC_VAL: recebe os valores introduzidos pelo jogador
+;
+
+REC_VAL:    PUSH R1
+            PUSH R2
+VER_VAL:    MOV R2, 10
+            MOV R1, M[SP + 4]
+            MOV M[IO_CONTROL], R1
+            CMP M[actualiza], R0
+            BR.NZ DEV_VAL
+            MOV R1, M[numero]
+            CMP R1, 1000h
+            BR.Z VER_VAL
+            MUL R2, M[SP + 5]
+            MOV R2, 1000h
+            MOV M[numero], R2
+            ADD M[SP + 5], R1
+            ADD R1, 30h
+            MOV M[IO_WRITE], R1
+            INC M[SP + 4]
+            BR VER_VAL
+DEV_VAL:    MOV M[actualiza], R0
+            POP R2
+            POP R1
+            RETN 1
+
+
+
+; ESCREVE: escreve uma string
+;
+ESCREVE:    PUSH R1
+            PUSH R2
+            PUSH R3
+            PUSH R4
+            PUSH R5
+            MOV R5, R0
+            MOV R1, M[SP + 8]       ; Move para R1 o local em memoria do primeiro caracter
+            MOV R2, M[SP + 7]       ; Move para R2 a posição inicial do terminal
+REP_ESC:    MOV R3, M[R1]           ; Move o primeiro caracter para R3
+            MOV R4, FINAL_STR
+            CMP R4, R3
+            BR.Z ACA_ESC
+            MOV R4, '@'
+            CMP R4, R3
+            BR.NZ CONT_ESC
+            MOV R2, M[SP + 7]
+            ADD R5, 0100h
+            ADD R2, R5              ; Mudar de linha
+            BR NL_ESC
+CONT_ESC:   MOV M[IO_CONTROL], R2
+            MOV M[IO_WRITE], R3     ; Escreve no terminal as strings
+            INC R2
+NL_ESC:     INC R1
+            BR REP_ESC
+ACA_ESC:    POP R5
+            POP R4
+            POP R3
+            POP R2
+            POP R1
+            RETN 2
+
+; APAGA: apaga uma string
+;
+APAGA:      PUSH R1
+            PUSH R2
+            PUSH R3
+            PUSH R4
+            PUSH R5
+            MOV R5, R0
+            MOV R1, M[SP + 8]       ; Move para R1 o local em memoria do primeiro caracter
+            MOV R2, M[SP + 7]       ; Move para R2 a posição inicial do terminal
+REP_APA:    MOV R3, M[R1]           ; Move o primeiro caracter para R3
+            MOV R4, FINAL_STR
+            CMP R4, R3
+            BR.Z ACA_APA
+            MOV R4, '@'
+            CMP R4, R3
+            BR.NZ CONT_APA
+            MOV R2, M[SP + 7]
+            ADD R5, 0100h
+            ADD R2, R5              ; Mudar de linha
+            BR NL_APA 
+CONT_APA:   MOV R3, ' '
+            MOV M[IO_CONTROL], R2
+            MOV M[IO_WRITE], R3     ; Apaga o que foi escrito anteriormente com a funcao ESCREVE
+            INC R2
+NL_APA:     INC R1
+            BR REP_APA
+ACA_APA:    POP R5
+            POP R4
+            POP R3
+            POP R2
+            POP R1
+            RETN 2
 
 ; ACT_TERM: atualiza a posiçao do projetil
 ;				Entradas: variaveis - angulo, tempo, velocidade inicial
@@ -118,15 +295,15 @@ ACT_TERM:	PUSH R1
 			PUSH R2
 			PUSH R3
 			PUSH R0
-            PUSH vinic
+            PUSH M[vinic]
             PUSH M[tempo]
-            PUSH ang
+            PUSH M[ang]
             CALL POSX
             POP R1
 			PUSH R0
-            PUSH vinic
+            PUSH M[vinic]
             PUSH M[tempo]
-            PUSH ang
+            PUSH M[ang]
             CALL POSY
             POP R2
 			MOV M[posicaox], R1
