@@ -12,12 +12,12 @@ IO_CONTROL 	EQU FFFCh
 SP_INI      EQU FDFFh
 TIMER_COUNT EQU FFF6h
 TIMER_CTRL  EQU FFF7h
-LIMITE_X	EQU 80
-LIMITE_Y	EQU FFh
+LIMITE_X	EQU 79
+LIMITE_Y	EQU FEh
 NBR_MILISEC	EQU 1
 INT_MASK    EQU 87FFh
 FINAL_STR   EQU 0080h
-meiograv    EQU 04e6h
+meiograv    EQU 04E6h
 
 
 ;									+--------------------+
@@ -53,6 +53,10 @@ posicao		WORD 1700h
 posicaox	WORD 0000h
 posicaoy	WORD 0000h
 numero      WORD 1000h
+random      WORD 0000h
+posi_ban    WORD 0000h
+pos_mac2    WORD 0000h
+score       WORD 0000h
 ecra_ini	STR '------------GORILAS-------------@'
 ecra_ini2	STR 'Antonio Romeu & Francisco Lisboa@'
 ecra_ini3	STR '  Press any key to continue...  '
@@ -60,7 +64,12 @@ fim_ini     WORD FINAL_STR
 vel_str 	STR 'Velocidade:                    @'
 ang_str 	STR 'Angulo:                        '
 fim_input   WORD FINAL_STR
-
+mac_str1 	STR ' o/@'
+mac_str2 	STR ' U @'
+mac_str3    STR '/ \'
+fim_mac1    WORD FINAL_STR
+mac2_str    STR '\o @'
+fim_mac2    WORD FINAL_STR
 
 ;									+--------------------+
 ;									| Programa Principal |
@@ -79,12 +88,24 @@ fim_input   WORD FINAL_STR
             PUSH ecra_ini
             PUSH 0918h              ; Posiçao inicial da string
             CALL ESCREVE
-INIC:       CMP R0, M[actualiza]
+INIC:       INC M[random]
+            CMP R0, M[actualiza]
             BR.Z INIC
             MOV M[actualiza], R0
             PUSH ecra_ini
             PUSH 0918h
             CALL APAGA
+REP_LANC:   PUSH ecra_ini
+            PUSH 1500h
+            CALL APAGA
+            PUSH ecra_ini
+            PUSH 1530h
+            CALL APAGA
+            MOV R7, meiograv
+            ADD M[random], R7
+            PUSH R0
+            CALL RANDOM
+            CALL POS_MACS
             PUSH vel_str
             PUSH 0000h
             CALL ESCREVE
@@ -100,7 +121,7 @@ INIC:       CMP R0, M[actualiza]
             PUSH 0000h
             CALL APAGA
             CALL VOO
-            JMP INIC
+            JMP REP_LANC
             BR -1
 
 
@@ -174,21 +195,90 @@ MOVER:      MOV M[numero], R1
 ;									|  Zona de funções   |
 ;									+--------------------+
 
+
+POS_MACS:   PUSH R1
+            PUSH R2
+            MOV R1, M[SP + 4]
+            MOV R2, 20
+            DIV R1, R2      ; R2 com valor entre 0-19
+            ADD R2, 1500h
+            PUSH mac_str1
+            PUSH R2
+            CALL ESCREVE
+            ADD R2, 0003h
+            MVBL M[posi_ban], R2
+            MOV R1, M[SP + 4]
+            ROR R1, 8
+            MOV R2, 20
+            DIV R1, R2
+            ADD R2, 153ah
+            MOV M[pos_mac2], R2
+            PUSH mac_str1
+            PUSH R2
+            CALL ESCREVE
+            PUSH mac2_str
+            PUSH R2
+            CALL ESCREVE
+            POP R2
+            POP R1
+            RET
+
+
+
+; RANDOM: calcula um valor pseudo-aleatorio
+RANDOM:     PUSH R1
+            PUSH R2
+            MOV R2, 5
+REP_RANDOM: MOV R1, M[random]
+            TEST R1, 0001h
+            BR.Z SALTA
+            XOR R1, meiograv
+SALTA:      ROR R1, 1
+            DEC R2
+            CMP R2, R0
+            BR.NZ REP_RANDOM
+            MOV M[SP + 4], R1
+            POP R2
+            POP R1
+            RET
+
+;VOO: poe a banana a voar.
+
 VOO:        PUSH R1
             PUSH R2
             PUSH R7
             MOV R1, 1
             MOV M[TIMER_CTRL], R1	; Inicializa o temporizador
+            JMP CHECK
 UPDATE:	    MOV R2, 32			    ; Apaga a ultima instancia do projetil
 			MOV M[IO_WRITE], R2
 			MOV R7, M[posicao]
 			MOV M[IO_CONTROL], R7
 			MOV R7, '<'
 			MOV M[IO_WRITE], R7
-			MOV R7, M[posicaox]
-			CMP R7, LIMITE_X		; Verifica se o projetil ja saiu da janela (pela direita)
-			BR.NP CHECK
-            MOV M[TIMER_CTRL], R0
+            MOV R7, M[posicaoy]
+			CMP R7, LIMITE_Y		; Verifica se o projetil ja saiu da janela (pela direita)
+			BR.NZ CHECK_X
+            MOV M[posicaoy], R0
+            BR FIM_VOO
+CHECK_X:	MOV R7, M[posicaox]
+			CMP R7, LIMITE_X		; Verifica se o projetil ja saiu da janela (por baixo)
+			BR.NP CHECK_H
+            MOV M[posicaox], R0
+            BR FIM_VOO
+CHECK_H:    MOV R7, 2
+            CMP M[posicaoy], R7
+            BR.P CHECK
+            MVBL R7, M[pos_mac2]
+            CMP M[posicaox], R7
+            BR.N CHECK
+            ADD R7, 2
+            CMP M[posicaox], R7
+            BR.P CHECK
+            INC M[score]
+            MOV R7, 32
+            MOV M[IO_WRITE], R7
+FIM_VOO:    MOV M[TIMER_CTRL], R0
             MOV M[tempo], R0
 			POP R7
             POP R2
@@ -197,7 +287,7 @@ UPDATE:	    MOV R2, 32			    ; Apaga a ultima instancia do projetil
 CHECK:		CMP R0, M[actualiza]
 			BR.Z CHECK
 			CALL ACT_TERM
-            BR UPDATE
+            JMP UPDATE
 
 
 ; REC_VAL: recebe os valores introduzidos pelo jogador
@@ -309,13 +399,14 @@ ACT_TERM:	PUSH R1
             PUSH M[ang]
             CALL POSY
             POP R2
-			MOV M[posicaox], R1
-			SHR M[posicaox], 8
+            ADD R2, 0300h
 			MOV M[posicaoy], R2
 			SHR M[posicaoy], 8
 			MOV R3, 1700h	        ; Inverter o y
 			SUB R3, R2
 			SHR R1, 8
+            ADD R1, M[posi_ban]
+			MOV M[posicaox], R1
 			MVBL R3, R1
 			MOV M[posicao], R3
 			DEC M[actualiza]
