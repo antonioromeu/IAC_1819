@@ -13,7 +13,7 @@ SP_INI      EQU     FDFFh
 TIMER_COUNT EQU     FFF6h
 TIMER_CTRL  EQU     FFF7h
 LIMITE_X	EQU     004Fh
-LIMITE_Y	EQU     00FEh
+LIMITE_Y	EQU     007Eh
 NBR_MILISEC	EQU     0001h
 INT_MASK    EQU     87FFh
 FINAL_STR   EQU     0080h
@@ -63,8 +63,7 @@ pos_mac2    WORD    0000h
 score       WORD    0000h
 ecra_ini	STR     '------------GORILLAS------------@'
 ecra_ini2	STR     '      Score 3 points to win     @'
-ecra_ini3	STR     'Angle has to be between 0 and 90@'
-ecra_ini4	STR     '     Press IA to continue...     '
+ecra_ini3	STR     '     Press IA to continue...     '
 fim_ini     WORD    FINAL_STR
 vel_str 	STR     'Velocity:                       @'
 ang_str 	STR     'Angle:                          @'
@@ -82,6 +81,9 @@ fim_mac2    WORD    FINAL_STR
 ecra_vic    STR     '             You Won            @'
 ecra_vic2	STR     '     Press IA to restart...      '
 fim_ec      WORD    FINAL_STR
+ecra_erro	STR     'Angle has to be between 0 and 90@'
+ecra_erro2	STR     '     Press IA to restart...      '
+fim_erro    WORD    FINAL_STR
 
 
 ;									+--------------------+
@@ -119,6 +121,10 @@ REP_LANC:   MOV     R7, FFFFh
             PUSH    vel_str
             PUSH    0000h
             CALL    ESCREVE
+            MOV     R1, ANG_MAX
+            MOV     R2, M[ang]
+            CMP     R1, R2
+            JMP.N   ECRA_ERRO
             MOV     R3, M[score]
             CMP     R3, 0003h
             JMP.Z   ECRA_VIC                ; Verifica se a posicao maxima (3) foi atingida
@@ -213,6 +219,18 @@ MOVER:      MOV     M[numero], R1
 ;									+--------------------+
 ;									|  Zona de funções   |
 ;									+--------------------+
+
+
+; ECRA_ERRO: ecra de erro que aparece no angulo quando este e superior a 90
+ECRA_ERRO:  MOV     M[ang], R0
+            MOV     R7, FFFFh
+            MOV     M[IO_CONTROL], R7       ; Limpa o terminal
+            PUSH    ecra_erro
+            PUSH    0918h
+            CALL    ESCREVE                 ; Atraves da sub rotina ESCREVE escreve o ecra de vitoria na janela de texto
+EE_AUX:     CMP     M[actualiza], R0
+            JMP.NZ  0000h
+            BR      EE_AUX
 
 
 ; ECRA_VIC: ecra de vitoria que aparece quando a pontuacao atinge os 3 valores
@@ -312,8 +330,10 @@ CHECK_AMX:  MOV     R1, ANG_MAX
             CMP     R1, R2
             JMP.N   FIM_VOO
 CHECK_Y:    MOV     R7, M[posicaoy]
-        	CMP     R7, LIMITE_Y		    ; Verifica se o projetil ja saiu da janela (pela direita)
-			BR.NZ   CHECK_X
+        	CMP     R7, LIMITE_Y		    ; Verifica se o projetil ja saiu da janela (por baixo)
+			BR.N	CHECK_X
+			CMP		R7, 00FFh
+			BR.Z	CHECK_X
             MOV     M[posicaoy], R0
             BR      FIM_VOO
 CHECK_X:	MOV     R7, M[posicaox]
