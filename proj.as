@@ -18,6 +18,7 @@ NBR_MILISEC	EQU     0001h
 INT_MASK    EQU     87FFh
 FINAL_STR   EQU     0080h
 MEIOGRAV    EQU     04E6h
+ANG_MAX     EQU     005Ah
 
 
 ;									+--------------------+
@@ -60,13 +61,14 @@ random      WORD    0000h
 posi_ban    WORD    0000h
 pos_mac2    WORD    0000h
 score       WORD    0000h
-ecra_ini	STR     '------------GORILAS-------------@'
-ecra_ini2	STR     '        First to 3 wins         @'
-ecra_ini3	STR     '     Press IA to continue...     '
+ecra_ini	STR     '------------GORILLAS------------@'
+ecra_ini2	STR     '      Score 3 points to win     @'
+ecra_ini3	STR     'Angle has to be between 0 and 90@'
+ecra_ini4	STR     '     Press IA to continue...     '
 fim_ini     WORD    FINAL_STR
-vel_str 	STR     'Velocidade:                     @'
-ang_str 	STR     'Angulo:                         @'
-pont_str    STR     'Pontuacao:                       '
+vel_str 	STR     'Velocity:                       @'
+ang_str 	STR     'Angle:                          @'
+pont_str    STR     'Score:                           '
 fim_pont    WORD    FINAL_STR
 mac_str1 	STR     ' o/@'
 mac_str2 	STR     ' U @'
@@ -121,15 +123,15 @@ REP_LANC:   MOV     R7, FFFFh
             CMP     R3, 0003h
             JMP.Z   ECRA_VIC                ; Verifica se a posicao maxima (3) foi atingida
             ADD     R3, 0030h
-            MOV     R2, 020Ah
+            MOV     R2, 0207h
             MOV     M[IO_CONTROL], R2
             MOV     M[IO_WRITE], R3         ; Escreve pontuacao na placa
             PUSH    R0
-            PUSH    000Dh
+            PUSH    000Ah
             CALL    REC_VAL
             POP     M[vinic]                ; Guarda valor da velocidade inicial inserido pelo jogador atraves das interrupcoes na variavel ang
             PUSH    R0
-            PUSH    0109h
+            PUSH    0107h
             CALL    REC_VAL                 ; Transforma os digitos introduziudos num valor que pode ser usado para calcular a trajetoria
             POP     M[ang]                  ; Guarda valor do angulo inserido pelo jogador
             PUSH    vel_str
@@ -305,6 +307,10 @@ UPDATE:	    MOV     R2, 0020h			    ; Apaga a ultima instancia do projetil
 ANIMA:      MOV     R7, '>'
 			MOV     M[IO_WRITE], R7
             INC     R6
+CHECK_AMX:  MOV     R1, ANG_MAX
+            MOV     R2, M[ang]
+            CMP     R1, R2
+            JMP.N   FIM_VOO
 CHECK_Y:    MOV     R7, M[posicaoy]
         	CMP     R7, LIMITE_Y		    ; Verifica se o projetil ja saiu da janela (pela direita)
 			BR.NZ   CHECK_X
