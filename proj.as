@@ -87,7 +87,7 @@ fim_erro    WORD    FINAL_STR
 
 
 ;									+--------------------+
-;									| Programa Principal |
+;									| Programa principal |
 ;									+--------------------+
 
 
@@ -164,11 +164,11 @@ TIMER:      PUSH    R7
 
 
 ;									+--------------------+
-;									| Zona de interações |
+;									| Zona de interacoes |
 ;									+--------------------+
 
 
-; Relaciona as os butoes da placa com o respetivo numero (ex: a TEC_O corresponde o numero 0 e assim sucessivamente)
+; Relaciona os butoes da placa com o respetivo numero (ex: a TEC_O corresponde o numero 0)
 TEC_0:      MOV     M[numero], R0
             RTI
 
@@ -217,11 +217,11 @@ MOVER:      MOV     M[numero], R1
 
 
 ;									+--------------------+
-;									|  Zona de funções   |
+;									|  Zona de funcoes   |
 ;									+--------------------+
 
 
-; ECRA_ERRO: ecra de erro que aparece no angulo quando este e superior a 90
+; ECRA_ERRO: Ecra de erro que aparece quando este e superior a 90
 ECRA_ERRO:  MOV     M[ang], R0
             MOV     R7, FFFFh
             MOV     M[IO_CONTROL], R7       ; Limpa o terminal
@@ -233,7 +233,7 @@ EE_AUX:     CMP     M[actualiza], R0
             BR      EE_AUX
 
 
-; ECRA_VIC: ecra de vitoria que aparece quando a pontuacao atinge os 3 valores
+; ECRA_VIC: Ecra de vitoria que aparece quando a pontuacao atinge os 3 valores
 ECRA_VIC:   MOV     M[score], R0            ; Da reset a pontuacao caso o seu valor anterior seja 3
             MOV     R7, FFFFh
             MOV     M[IO_CONTROL], R7       ; Limpa o terminal
@@ -245,7 +245,7 @@ EC_AUX:     CMP     M[actualiza], R0
             BR      EC_AUX
 
 
-; POS_MACS: insere os "macacos" nas respetivas zonas (macaco1 fica entre o-19 e macaco2 entre 49-79 em termos de x)
+; POS_MACS: Insere os "macacos" nas respetivas zonas (macaco1 fica entre o-19 e macaco2 entre 49-79 em termos de x)
 POS_MACS:   PUSH    R1
             PUSH    R2
             PUSH    R3
@@ -285,7 +285,7 @@ POS_MACS:   PUSH    R1
             RET
 
 
-; RANDOM: calcula um valor pseudo aleatorio
+; RANDOM: Calcula um valor pseudo aleatorio
 RANDOM:     PUSH    R1
             PUSH    R2
             MOV     R2, 0005h
@@ -303,7 +303,7 @@ SALTA:      ROR     R1, 0001h
             RET
 
 
-;VOO: poe a banana a voar
+;VOO: Poe a banana a voar
 VOO:        PUSH    R1
             PUSH    R2
             PUSH    R7
@@ -366,7 +366,7 @@ CHECK:		CMP     R0, M[actualiza]
             JMP     UPDATE
 
 
-; REC_VAL: recebe os valores introduzidos pelo jogador
+; REC_VAL: Recebe os valores introduzidos pelo jogador
 REC_VAL:    PUSH    R1
             PUSH    R2
 VER_VAL:    MOV     R2, 000Ah
@@ -391,7 +391,7 @@ DEV_VAL:    MOV     M[actualiza], R0        ; Devolve o valor introduzido para s
             RETN    0001h
 
 
-; ESCREVE: escreve uma string
+; ESCREVE: Escreve uma string
 ;               Entradas: variaveis - strings que pretendemos escrever 
 ESCREVE:    PUSH    R1
             PUSH    R2
@@ -400,7 +400,7 @@ ESCREVE:    PUSH    R1
             PUSH    R5
             MOV     R5, R0
             MOV     R1, M[SP + 8]           ; Move para R1 o local em memoria do primeiro caracter
-            MOV     R2, M[SP + 7]           ; Move para R2 a posição inicial do terminal
+            MOV     R2, M[SP + 7]           ; Move para R2 a posicao inicial do terminal
 REP_ESC:    MOV     R3, M[R1]               ; Move o primeiro caracter para R3
             MOV     R4, FINAL_STR
             CMP     R4, R3
@@ -425,7 +425,7 @@ ACA_ESC:    POP     R5
             RETN    2
 
 
-; APAGA: apaga uma string substituindo as letras por espacos
+; APAGA: Apaga uma string substituindo as letras por espacos
 APAGA:      PUSH    R1
             PUSH    R2
             PUSH    R3
@@ -447,7 +447,7 @@ REP_APA:    MOV     R3, M[R1]               ; Move o primeiro caracter para R3
             BR      NL_APA 
 CONT_APA:   MOV     R3, ' '
             MOV     M[IO_CONTROL], R2
-            MOV     M[IO_WRITE], R3         ; Apaga o que foi escrito anteriormente, através de espacos, com a sub rotino ESCREVE
+            MOV     M[IO_WRITE], R3         ; Apaga o que foi escrito anteriormente, atraves de espacos, com a sub rotina ESCREVE
             INC     R2
 NL_APA:     INC     R1
             BR      REP_APA
@@ -459,7 +459,7 @@ ACA_APA:    POP     R5
             RETN    0002h
 
 
-; ACT_TERM: atualiza a posiçao do projetil
+; ACT_TERM: Atualiza a posicao do projetil
 ;			    Entradas: pilha - angulo, tempo, velocidade inicial
 ACT_TERM:	PUSH    R1
 			PUSH    R2
@@ -499,7 +499,7 @@ ACT_TERM:	PUSH    R1
 			RET
 
 
-; POSY:	obtem o valor da coordenada y, evocando o sen e o compact
+; POSY:	Obtem o valor da coordenada y, evocando o sen e o compact
 ;				Entradas: pilha - angulo, tempo, velocidade inicial
 POSY:       PUSH    R1
             PUSH    R2
@@ -545,7 +545,7 @@ POSY:       PUSH    R1
             RETN    0003h
 
 
-; POSX:	obtem o valor da coordenada x, evocando o cos e o compact
+; POSX:	Obtem o valor da coordenada x, evocando o cos e o compact
 ;				Entradas: pilha - angulo, tempo, velocidade inicial
 POSX:       PUSH    R1
             PUSH    R2
@@ -577,7 +577,7 @@ POSX:       PUSH    R1
             RETN    0003h
 
 
-; SEN: obtem o sen do angulo dado, atraves do cos
+; SEN: Obtem o sen do angulo dado, atraves do cos
 ;				Entradas: pilha - angulo
 SEN:        PUSH    R1
             PUSH    R2
@@ -594,7 +594,7 @@ SEN:        PUSH    R1
             RETN    0001h
 
 
-; COS: obtem o cos do angulo dado, evocando rad, exp e fact
+; COS: Obtem o cos do angulo dado, evocando rad, exp e fact
 ;				Entradas: pilha - angulo
 COS:        PUSH    R1
             PUSH    R2
@@ -635,7 +635,7 @@ COS:        PUSH    R1
             RETN    0001h
 
 
-; RAD: transforma o angulo em graus para radianos, atraves do chamamento de compact
+; RAD: Transforma o angulo em graus para radianos, atraves do chamamento de compact
 ;				Entradas: pilha - angulo
 RAD:        PUSH    R1
             PUSH    R2
@@ -661,7 +661,7 @@ RAD:        PUSH    R1
             RET
 
 
-; FACT:	aplica o factorial a um determinado numero, chama compact
+; FACT:	Aplica o factorial a um determinado numero, chama compact
 ;				Entradas: pilha - n
 FACT:       PUSH    R1
             PUSH    R2
@@ -688,7 +688,7 @@ FIM_FACT:   MOV     M[SP + 6], R2
             RETN    0001h
 
 
-; COMPACT: faz a alteracao da posicao da virgula fixa
+; COMPACT: Faz a alteracao da posicao da virgula fixa
 ;				Entradas: pilha - n
 COMPACT:    PUSH    R1
             PUSH    R2
@@ -703,7 +703,7 @@ COMPACT:    PUSH    R1
             RET
 
 
-; EXP: calcula a exponencial do valor dado
+; EXP: Calcula a exponencial do valor dado
 ;				Entradas: pilha - n
 EXP:        PUSH    R1
             PUSH    R2
