@@ -332,8 +332,6 @@ CHECK_AMX:  MOV     R1, ANG_MAX
 CHECK_Y:    MOV     R7, M[posicaoy]
         	CMP     R7, LIMITE_Y		    ; Verifica se o projetil ja saiu da janela (por baixo)
 			BR.N	CHECK_X
-			CMP		R7, 00FFh
-			BR.Z	CHECK_X
             MOV     M[posicaoy], R0
             BR      FIM_VOO
 CHECK_X:	MOV     R7, M[posicaox]
@@ -478,8 +476,10 @@ ACT_TERM:	PUSH    R1
             CALL    POSY
             POP     R2
             ADD     R2, M[posi_ban]
-            ADD     R2, 0100h
+			MOV		R3, 0100h
+            ADD     R2, R3
 			MOV     M[posicaoy], R2
+			ADD     M[posicaoy], R3
 			SHR     M[posicaoy], 0008h
 			MOV     R3, 1700h	            ; Inverter o y
 			SUB     R3, R2
