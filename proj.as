@@ -231,7 +231,7 @@ EC_ERROAN:  MOV     M[ang], R0
             MOV     M[IO_CONTROL], R7       ; Limpa o terminal
             PUSH    ec_erroan
             PUSH    0918h
-            CALL    ESCREVE                 ; Atraves da sub rotina ESCREVE escreve o ecra de erro na janela de texto
+            CALL    ESCREVE                 ; Atraves da rotina ESCREVE escreve o ecra de erro na janela de texto
 EEA_AUX:    CMP     M[actualiza], R0
             JMP.NZ  0000h
             BR      EEA_AUX
@@ -242,7 +242,7 @@ EC_ERROV:	MOV     M[vinic], R0
             MOV     M[IO_CONTROL], R7       ; Limpa o terminal
             PUSH    ec_errov
             PUSH    0915h
-            CALL    ESCREVE                 ; Atraves da sub rotina ESCREVE escreve o ecra de erro na janela de texto
+            CALL    ESCREVE                 ; Atraves da rotina ESCREVE escreve o ecra de erro na janela de texto
 EEV_AUX:    CMP     M[actualiza], R0
             JMP.NZ  0000h
             BR      EEV_AUX
@@ -253,7 +253,7 @@ ECRA_VIC:   MOV     M[score], R0            ; Da reset a pontuacao caso o seu va
             MOV     M[IO_CONTROL], R7       ; Limpa o terminal
             PUSH    ecra_vic
             PUSH    0918h
-            CALL    ESCREVE                 ; Atraves da sub rotina ESCREVE escreve o ecra de vitoria na janela de texto
+            CALL    ESCREVE                 ; Atraves da rotina ESCREVE escreve o ecra de vitoria na janela de texto
 EC_AUX:     CMP     M[actualiza], R0
             JMP.NZ  0000h
             BR      EC_AUX
@@ -397,7 +397,7 @@ VER_VAL:    MOV     R2, 000Ah
             MOV     M[IO_WRITE], R1
             INC     M[SP+4]
             BR      VER_VAL
-DEV_VAL:    MOV     M[actualiza], R0        ; Devolve o valor introduzido para ser utilizado como valor noutras sub rotinas
+DEV_VAL:    MOV     M[actualiza], R0        ; Devolve o valor introduzido para ser utilizado como valor noutras rotinas
             MOV     R1, M[numero]
             CMP     R1, 0FA0h               ; Compara o valor introduzido para a velocidade com o valor maximo aceite pelo codigo
             JMP.N   EC_ERROV
@@ -462,7 +462,7 @@ REP_APA:    MOV     R3, M[R1]               ; Move o primeiro caracter para R3
             BR      NL_APA 
 CONT_APA:   MOV     R3, ' '
             MOV     M[IO_CONTROL], R2
-            MOV     M[IO_WRITE], R3         ; Apaga o que foi escrito anteriormente, atraves de espacos, com a sub rotina ESCREVE
+            MOV     M[IO_WRITE], R3         ; Apaga o que foi escrito anteriormente, atraves de espacos, com a rotina ESCREVE
             INC     R2
 NL_APA:     INC     R1
             BR      REP_APA
