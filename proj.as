@@ -221,7 +221,7 @@ MOVER:      MOV     M[numero], R1
 
 
 ;									+--------------------+
-;									|  Zona de funcoes   |
+;									|  Zona de rotinas   |
 ;									+--------------------+
 
 
