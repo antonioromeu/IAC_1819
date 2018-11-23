@@ -5,9 +5,7 @@
 ;									| Zona de constantes |
 ;									+--------------------+
 
-IO_READ 	EQU     FFFFh
 IO_WRITE 	EQU     FFFEh
-IO_STATE 	EQU     FFFDh
 IO_CONTROL 	EQU     FFFCh
 SP_INI      EQU     FDFFh
 TIMER_COUNT EQU     FFF6h
@@ -19,6 +17,7 @@ INT_MASK    EQU     87FFh
 FINAL_STR   EQU     0080h
 MEIOGRAV    EQU     04E6h
 ANG_MAX     EQU     005Ah
+VEL_MAX		EQU		0FA0h
 
 
 ;									+--------------------+
@@ -81,10 +80,12 @@ fim_mac2    WORD    FINAL_STR
 ecra_vic    STR     '             You Won            @'
 ecra_vic2	STR     '     Press IA to restart...      '
 fim_ec      WORD    FINAL_STR
-ecra_erro	STR     'Angle has to be between 0 and 90@'
-ecra_erro2	STR     '     Press IA to restart...      '
-fim_erro    WORD    FINAL_STR
-
+ec_erroan	STR     'Angle has to be between 0 and 90@'
+ec_erroan2	STR     '     Press IA to restart...      '
+f_erroan    WORD    FINAL_STR
+ec_errov	STR     'Velocity has to be between 0 and 4000@'
+ec_errov2	STR     '        Press IA to restart...        '
+f_errov		WORD    FINAL_STR
 
 ;									+--------------------+
 ;									| Programa principal |
@@ -124,10 +125,14 @@ REP_LANC:   MOV     R7, FFFFh
             MOV     R1, ANG_MAX
             MOV     R2, M[ang]
             CMP     R1, R2
-            JMP.N   ECRA_ERRO
-            MOV     R3, M[score]
+            JMP.N   EC_ERROAN
+            MOV     R1, VEL_MAX
+            MOV     R2, M[vinic]
+            CMP     R1, R2
+            JMP.N   EC_ERROV
+			MOV     R3, M[score]
             CMP     R3, 0003h
-            JMP.Z   ECRA_VIC                ; Verifica se a posicao maxima (3) foi atingida
+            JMP.Z   ECRA_VIC                ; Verifica se a pontuacao maxima (3) foi atingida
             ADD     R3, 0030h
             MOV     R2, 0207h
             MOV     M[IO_CONTROL], R2
@@ -145,7 +150,7 @@ REP_LANC:   MOV     R7, FFFFh
             CALL    APAGA
             CALL    VOO
             JMP     REP_LANC                ; Repete o lancamento caso a pontuacao maxima nao tenha sido atingida
-            BR      -1
+            BR		-1
 
 
 ;									+--------------------+
@@ -161,8 +166,7 @@ TIMER:      PUSH    R7
             MOV     M[TIMER_COUNT], R7
             POP     R7
 			RTI
-
-
+			
 ;									+--------------------+
 ;									| Zona de interacoes |
 ;									+--------------------+
@@ -221,17 +225,27 @@ MOVER:      MOV     M[numero], R1
 ;									+--------------------+
 
 
-; ECRA_ERRO: Ecra de erro que aparece quando este e superior a 90
-ECRA_ERRO:  MOV     M[ang], R0
+; EC_ERROAN: Ecra de erro que aparece quando o angulo e superior a 90
+EC_ERROAN:  MOV     M[ang], R0
             MOV     R7, FFFFh
             MOV     M[IO_CONTROL], R7       ; Limpa o terminal
-            PUSH    ecra_erro
+            PUSH    ec_erroan
             PUSH    0918h
-            CALL    ESCREVE                 ; Atraves da sub rotina ESCREVE escreve o ecra de vitoria na janela de texto
-EE_AUX:     CMP     M[actualiza], R0
+            CALL    ESCREVE                 ; Atraves da sub rotina ESCREVE escreve o ecra de erro na janela de texto
+EEA_AUX:    CMP     M[actualiza], R0
             JMP.NZ  0000h
-            BR      EE_AUX
+            BR      EEA_AUX
 
+; EC_ERROV: Ecra de erro que aparece quando a velocidade e superior a 4000
+EC_ERROV:	MOV     M[vinic], R0
+            MOV     R7, FFFFh
+            MOV     M[IO_CONTROL], R7       ; Limpa o terminal
+            PUSH    ec_errov
+            PUSH    0915h
+            CALL    ESCREVE                 ; Atraves da sub rotina ESCREVE escreve o ecra de erro na janela de texto
+EEV_AUX:    CMP     M[actualiza], R0
+            JMP.NZ  0000h
+            BR      EEV_AUX
 
 ; ECRA_VIC: Ecra de vitoria que aparece quando a pontuacao atinge os 3 valores
 ECRA_VIC:   MOV     M[score], R0            ; Da reset a pontuacao caso o seu valor anterior seja 3
@@ -297,7 +311,7 @@ SALTA:      ROR     R1, 0001h
             DEC     R2
             CMP     R2, R0
             BR.NZ   REP_RANDOM
-            MOV     M[SP + 4], R1
+            MOV     M[SP+4], R1
             POP     R2
             POP     R1
             RET
@@ -368,22 +382,25 @@ CHECK:		CMP     R0, M[actualiza]
 REC_VAL:    PUSH    R1
             PUSH    R2
 VER_VAL:    MOV     R2, 000Ah
-            MOV     R1, M[SP + 4]
+            MOV     R1, M[SP+4]
             MOV     M[IO_CONTROL], R1
             CMP     M[actualiza], R0
             BR.NZ   DEV_VAL
             MOV     R1, M[numero]
             CMP     R1, 1000h
             BR.Z    VER_VAL
-            MUL     R2, M[SP + 5]
+            MUL     R2, M[SP+5]
             MOV     R2, 1000h
             MOV     M[numero], R2           ; Escreve o valor introduzido em R2
-            ADD     M[SP + 5], R1
+            ADD     M[SP+5], R1
             ADD     R1, 0030h
             MOV     M[IO_WRITE], R1
-            INC     M[SP + 4]
+            INC     M[SP+4]
             BR      VER_VAL
 DEV_VAL:    MOV     M[actualiza], R0        ; Devolve o valor introduzido para ser utilizado como valor noutras sub rotinas
+            MOV     R1, M[numero]
+            CMP     R1, 0FA0h               ; Compara o valor introduzido para a velocidade com o valor maximo aceite pelo codigo
+            JMP.N   EC_ERROV
             POP     R2
             POP     R1
             RETN    0001h
@@ -397,8 +414,8 @@ ESCREVE:    PUSH    R1
             PUSH    R4
             PUSH    R5
             MOV     R5, R0
-            MOV     R1, M[SP + 8]           ; Move para R1 o local em memoria do primeiro caracter
-            MOV     R2, M[SP + 7]           ; Move para R2 a posicao inicial do terminal
+            MOV     R1, M[SP+8]           ; Move para R1 o local em memoria do primeiro caracter
+            MOV     R2, M[SP+7]           ; Move para R2 a posicao inicial do terminal
 REP_ESC:    MOV     R3, M[R1]               ; Move o primeiro caracter para R3
             MOV     R4, FINAL_STR
             CMP     R4, R3
@@ -406,7 +423,7 @@ REP_ESC:    MOV     R3, M[R1]               ; Move o primeiro caracter para R3
             MOV     R4, '@'
             CMP     R4, R3
             BR.NZ   CONT_ESC
-            MOV     R2, M[SP + 7]
+            MOV     R2, M[SP+7]
             ADD     R5, 0100h
             ADD     R2, R5                  ; Muda de linha
             BR      NL_ESC
@@ -430,8 +447,8 @@ APAGA:      PUSH    R1
             PUSH    R4
             PUSH    R5
             MOV     R5, R0
-            MOV     R1, M[SP + 8]           ; Move para R1 o local em memoria do primeiro caracter
-            MOV     R2, M[SP + 7]           ; Move para R2 a posicao inicial do terminal
+            MOV     R1, M[SP+8]           ; Move para R1 o local em memoria do primeiro caracter
+            MOV     R2, M[SP+7]           ; Move para R2 a posicao inicial do terminal
 REP_APA:    MOV     R3, M[R1]               ; Move o primeiro caracter para R3
             MOV     R4, FINAL_STR
             CMP     R4, R3
@@ -439,7 +456,7 @@ REP_APA:    MOV     R3, M[R1]               ; Move o primeiro caracter para R3
             MOV     R4, '@'
             CMP     R4, R3
             BR.NZ   CONT_APA
-            MOV     R2, M[SP + 7]
+            MOV     R2, M[SP+7]
             ADD     R5, 0100h
             ADD     R2, R5                  ; Muda de linha
             BR      NL_APA 
@@ -504,9 +521,9 @@ ACT_TERM:	PUSH    R1
 POSY:       PUSH    R1
             PUSH    R2
             PUSH    R3
-            MOV     R1, M [SP + 5]
-            MOV     R2, M [SP + 6]
-            MOV     R3, M [SP + 7]
+            MOV     R1, M[SP+5]
+            MOV     R2, M[SP+6]
+            MOV     R3, M[SP+7]
             PUSH    R0
             PUSH    R1
             CALL    SEN
@@ -525,7 +542,7 @@ POSY:       PUSH    R1
             POP     R3
             POP     R2
             MOV     R1, MEIOGRAV
-            MOV     R2, M [SP + 6]
+            MOV     R2, M[SP+6]
             PUSH    R0
             PUSH    R2
             PUSH    0200h
@@ -538,7 +555,7 @@ POSY:       PUSH    R1
             POP     R2
             POP     R1
             SUB     R3, R2
-            MOV     M[SP + 8], R3
+            MOV     M[SP+8], R3
             POP     R3
             POP     R2
             POP     R1
@@ -550,9 +567,9 @@ POSY:       PUSH    R1
 POSX:       PUSH    R1
             PUSH    R2
             PUSH    R3
-            MOV     R1, M [SP + 5]
-            MOV     R2, M [SP + 6]
-            MOV     R3, M [SP + 7]
+            MOV     R1, M[SP+5]
+            MOV     R2, M[SP+6]
+            MOV     R3, M[SP+7]
             PUSH    R0
             PUSH    R1
             CALL    COS
@@ -570,7 +587,7 @@ POSX:       PUSH    R1
             CALL    COMPACT
             POP     R3
             POP     R2
-            MOV     M[SP + 8], R3
+            MOV     M[SP+8], R3
             POP     R3
             POP     R2
             POP     R1
@@ -581,14 +598,14 @@ POSX:       PUSH    R1
 ;				Entradas: pilha - angulo
 SEN:        PUSH    R1
             PUSH    R2
-            MOV     R1, M[SP + 4]
+            MOV     R1, M[SP+4]
             MOV     R2, 005Ah
             SUB     R2, R1                  ; Transforma o seno em cosseno atraves de um subtracao do valor 90 (005Ah)
             PUSH    R0
             PUSH    R2
             CALL    COS
             POP     R1
-            MOV     M[SP + 5], R1
+            MOV     M[SP+5], R1
             POP     R2
             POP     R1
             RETN    0001h
@@ -600,7 +617,7 @@ COS:        PUSH    R1
             PUSH    R2
             PUSH    R3
             PUSH    R4
-            MOV     R1, M[SP + 6]
+            MOV     R1, M[SP+6]
             SHL     R1, 0008h
             PUSH    R1
             CALL    RAD
@@ -627,7 +644,7 @@ COS:        PUSH    R1
             SHR     R4, 0008h
             DIV     R3, R4
             ADD     R1, R3
-            MOV     M[SP + 7], R1
+            MOV     M[SP+7], R1
             POP     R4
             POP     R3
             POP     R2
@@ -640,7 +657,7 @@ COS:        PUSH    R1
 RAD:        PUSH    R1
             PUSH    R2
             PUSH    R3
-            MOV     R1, M[SP + 5]
+            MOV     R1, M[SP+5]
             MOV     R2, 0324h
             MOV     R3, 0004h
             DIV     R1, R3
@@ -654,7 +671,7 @@ RAD:        PUSH    R1
             DIV     R1, R3
             MOV     R3, 0009h
             DIV     R1, R3
-            MOV     M[SP + 5], R1
+            MOV     M[SP+5], R1
             POP     R3
             POP     R2
             POP     R1
@@ -666,7 +683,7 @@ RAD:        PUSH    R1
 FACT:       PUSH    R1
             PUSH    R2
             PUSH    R3
-            MOV     R1, M[SP + 5]
+            MOV     R1, M[SP+5]
             MOV     R2, 0100h
 
 COMP_FACT:  CMP     R1, R0
@@ -681,7 +698,7 @@ COMP_FACT:  CMP     R1, R0
             SUB     R1, 0100h
             BR      COMP_FACT
 
-FIM_FACT:   MOV     M[SP + 6], R2
+FIM_FACT:   MOV     M[SP+6], R2
             POP     R3
             POP     R2
             POP     R1
@@ -692,12 +709,12 @@ FIM_FACT:   MOV     M[SP + 6], R2
 ;				Entradas: pilha - n
 COMPACT:    PUSH    R1
             PUSH    R2
-            MOV     R1, M[SP + 5]
-            MOV     R2, M[SP + 4]
+            MOV     R1, M[SP+5]
+            MOV     R2, M[SP+4]
             MVBL    R2, R1
 			ROR     R2, 0008h
-            MOV     M[SP + 4], R2
-            MOV     M[SP + 5], R1
+            MOV     M[SP+4], R2
+            MOV     M[SP+5], R1
             POP     R2
             POP     R1
             RET
@@ -709,8 +726,8 @@ EXP:        PUSH    R1
             PUSH    R2
             PUSH    R3
             PUSH    R4
-            MOV     R1, M[SP + 6]
-            MOV     R2, M[SP + 7]
+            MOV     R1, M[SP+6]
+            MOV     R2, M[SP+7]
             MOV     R4, 0100h
 
 COMP_EXP:   CMP     R1, R0
@@ -725,9 +742,9 @@ COMP_EXP:   CMP     R1, R0
             SUB     R1, 0100h
             BR      COMP_EXP
 
-FIM_EXP:    MOV     M[SP + 8], R4
+FIM_EXP:    MOV     M[SP+8], R4
             POP     R4
             POP     R3
             POP     R2
             POP     R1
-            RETN    0002h
+            RETN    0002h 
