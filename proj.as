@@ -236,6 +236,7 @@ EEA_AUX:    CMP     M[actualiza], R0
             JMP.NZ  0000h
             BR      EEA_AUX
 
+
 ; EC_ERROV: Ecra de erro que aparece quando a velocidade e superior a 4000
 EC_ERROV:	MOV     M[vinic], R0
             MOV     R7, FFFFh
@@ -246,6 +247,7 @@ EC_ERROV:	MOV     M[vinic], R0
 EEV_AUX:    CMP     M[actualiza], R0
             JMP.NZ  0000h
             BR      EEV_AUX
+
 
 ; ECRA_VIC: Ecra de vitoria que aparece quando a pontuacao atinge os 3 valores
 ECRA_VIC:   MOV     M[score], R0            ; Da reset a pontuacao caso o seu valor anterior seja 3
@@ -259,7 +261,7 @@ EC_AUX:     CMP     M[actualiza], R0
             BR      EC_AUX
 
 
-; POS_MACS: Insere os "macacos" nas respetivas zonas (macaco1 fica entre o-19 e macaco2 entre 49-79 em termos de x)
+; POS_MACS: Insere os "macacos" nas respetivas zonas (macaco1 fica entre 0-19 e macaco2 entre 49-79 em termos de x)
 POS_MACS:   PUSH    R1
             PUSH    R2
             PUSH    R3
@@ -414,8 +416,8 @@ ESCREVE:    PUSH    R1
             PUSH    R4
             PUSH    R5
             MOV     R5, R0
-            MOV     R1, M[SP+8]           ; Move para R1 o local em memoria do primeiro caracter
-            MOV     R2, M[SP+7]           ; Move para R2 a posicao inicial do terminal
+            MOV     R1, M[SP+8]             ; Move para R1 o local em memoria do primeiro caracter
+            MOV     R2, M[SP+7]             ; Move para R2 a posicao inicial do terminal
 REP_ESC:    MOV     R3, M[R1]               ; Move o primeiro caracter para R3
             MOV     R4, FINAL_STR
             CMP     R4, R3
@@ -447,8 +449,8 @@ APAGA:      PUSH    R1
             PUSH    R4
             PUSH    R5
             MOV     R5, R0
-            MOV     R1, M[SP+8]           ; Move para R1 o local em memoria do primeiro caracter
-            MOV     R2, M[SP+7]           ; Move para R2 a posicao inicial do terminal
+            MOV     R1, M[SP+8]             ; Move para R1 o local em memoria do primeiro caracter
+            MOV     R2, M[SP+7]             ; Move para R2 a posicao inicial do terminal
 REP_APA:    MOV     R3, M[R1]               ; Move o primeiro caracter para R3
             MOV     R4, FINAL_STR
             CMP     R4, R3
