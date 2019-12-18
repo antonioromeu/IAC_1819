@@ -1,2 +1,8 @@
-# IAC_1819
-Projeto de IAC em Assembly de P3
+# IAC_1819 : QBASIC Gorillas
+
+A take on the game QBASIC Gorillas.
+
+## Authors
+
+* António Romeu Pinheiro
+* Francisco Lisboa
